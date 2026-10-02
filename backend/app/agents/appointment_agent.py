@@ -5,7 +5,7 @@ from app.agents.state import AgentState
 from app.agents.llm_client import call_gemini_or_fallback
 from app.tools.sales_tools import tool_book_appointment
 
-APPOINTMENT_SYSTEM_PROMPT = """You are the Appointment Scheduling Agent for AgentFlow AI.
+APPOINTMENT_SYSTEM_PROMPT = """You are the Appointment Scheduling Agent for Kinetix.
 Your responsibility is to assist customers with booking product demonstrations and sales consultations.
 
 Available demo slots for the next 3 business days:
@@ -83,16 +83,16 @@ def appointment_agent_node(state: AgentState) -> dict:
 
         final_reply = (
             f"🎉 **Demo Confirmed!** Your consultation has been scheduled for **{date_val} at {time_val}**.\n\n"
-            f"• **Session Link**: [https://meet.agentflow.ai/sales-demo](https://meet.agentflow.ai/sales-demo)\n"
+            f"• **Session Link**: [https://meet.kinetix.ai/sales-demo](https://meet.kinetix.ai/sales-demo)\n"
             f"• **Calendar Invite**: Sent to your registered email address.\n"
-            f"• **Host**: Senior AI Sales Engineer, AgentFlow AI\n\n"
+            f"• **Host**: Senior AI Sales Engineer, Kinetix\n\n"
             f"We're looking forward to walking you through our autonomous sales agent architecture!"
         )
     else:
         tomorrow_str = (datetime.now() + timedelta(days=1)).strftime("%A, %b %d")
         next_day_str = (datetime.now() + timedelta(days=2)).strftime("%A, %b %d")
         final_reply = (
-            f"I'd be glad to arrange a live interactive demonstration of AgentFlow AI! "
+            f"I'd be glad to arrange a live interactive demonstration of Kinetix! "
             f"Here are our upcoming VIP slots:\n\n"
             f"1. **{tomorrow_str} at 10:00 AM EST**\n"
             f"2. **{tomorrow_str} at 2:00 PM EST**\n"

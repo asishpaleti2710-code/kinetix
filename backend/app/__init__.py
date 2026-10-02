@@ -1,1 +1,1 @@
-# AgentFlow AI Backend Package
+# Kinetix Backend Package

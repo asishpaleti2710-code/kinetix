@@ -3,13 +3,13 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0
-    container_name: agentflow_mysql
+    container_name: kinetix_mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: agentflow
-      MYSQL_USER: agentflow_user
-      MYSQL_PASSWORD: agentflow_pass
+      MYSQL_DATABASE: kinetix
+      MYSQL_USER: kinetix_user
+      MYSQL_PASSWORD: kinetix_pass
     ports:
       - "3306:3306"
     volumes:
@@ -24,12 +24,12 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: agentflow_backend
+    container_name: kinetix_backend
     restart: always
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=mysql+pymysql://agentflow_user:agentflow_pass@mysql:3306/agentflow
+      - DATABASE_URL=mysql+pymysql://kinetix_user:kinetix_pass@mysql:3306/kinetix
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - CHROMA_PERSIST_DIR=/app/chroma_db
     depends_on:
@@ -43,7 +43,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: agentflow_frontend
+    container_name: kinetix_frontend
     restart: always
     ports:
       - "5173:80"

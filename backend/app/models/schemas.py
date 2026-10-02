@@ -1,6 +1,12 @@
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
+
+try:
+    from pydantic import EmailStr
+    import email_validator
+except ImportError:
+    EmailStr = str
 
 # User Schemas
 class UserBase(BaseModel):

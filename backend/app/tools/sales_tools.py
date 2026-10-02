@@ -140,7 +140,7 @@ def tool_book_appointment(
     date_str: str,
     time_str: str,
     notes: Optional[str] = None,
-    meeting_link: Optional[str] = "https://meet.agentflow.ai/sales-demo",
+    meeting_link: Optional[str] = "https://meet.kinetix.ai/sales-demo",
     db: Optional[Session] = None
 ) -> Dict[str, Any]:
     """
@@ -232,22 +232,22 @@ def tool_generate_followup(
         context_extra = f"\nNote: {custom_context}" if custom_context else ""
 
         whatsapp_msg = (
-            f"Hi {customer_name}! 🚀 Following up from AgentFlow AI. "
+            f"Hi {customer_name}! 🚀 Following up from Kinetix. "
             f"We're excited to help scale {business_type} with our autonomous sales agents. "
             f"Based on your {timeline} timeline, let's lock in a 15-min walkthrough: "
-            f"https://meet.agentflow.ai/sales-demo. Let us know if you have any questions!{context_extra}"
+            f"https://meet.kinetix.ai/sales-demo. Let us know if you have any questions!{context_extra}"
         )
 
-        email_subject = f"Next steps with AgentFlow AI for {business_type}"
+        email_subject = f"Next steps with Kinetix for {business_type}"
         email_body = (
             f"Hi {customer_name},\n\n"
-            f"Thank you for connecting with AgentFlow AI today. We discussed how our agentic AI platform "
+            f"Thank you for connecting with Kinetix today. We discussed how our agentic AI platform "
             f"can accelerate pipeline growth for {business_type} within your {timeline} timeline.\n\n"
             f"Summary of next steps:\n"
             f"- Review custom solution architecture for {business_type}\n"
-            f"- Dedicated meeting slot: https://meet.agentflow.ai/sales-demo\n"
+            f"- Dedicated meeting slot: https://meet.kinetix.ai/sales-demo\n"
             f"{context_extra}\n\n"
-            f"Best regards,\nAgentFlow AI Sales Team\nhttps://agentflow.ai"
+            f"Best regards,\nKinetix Sales Team\nhttps://kinetix.ai"
         )
 
         return {

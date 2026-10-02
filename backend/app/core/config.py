@@ -3,12 +3,12 @@ from pydantic_settings import BaseSettings
 from typing import List
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "AgentFlow AI - Agentic Sales Employee"
+    PROJECT_NAME: str = "Kinetix - Autonomous Sales Engine"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     
     # Database Settings (Defaults to SQLite for instant plug-and-play, supports MySQL)
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./agentflow.db")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./kinetix.db")
     
     # AI / LLM Settings
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")

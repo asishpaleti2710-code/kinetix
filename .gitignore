@@ -30,7 +30,7 @@ wheels/
 backend/agentflow.db
 backend/chroma_db/
 backend/uploads/*.pdf
-!backend/uploads/AgentFlow_Product_Manual.pdf
+!backend/uploads/Kinetix_Test_Knowledge_Base.pdf
 
 # Environment
 .env

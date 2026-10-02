@@ -1,10 +1,10 @@
 -- ====================================================================
--- AgentFlow AI - Production MySQL Database Schema
--- Multi-Agent Sales Representative Platform
+-- Kinetix - Production MySQL Database Schema
+-- Multi-Agent Sales Platform
 -- ====================================================================
 
-CREATE DATABASE IF NOT EXISTS agentflow CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE agentflow;
+CREATE DATABASE IF NOT EXISTS kinetix CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE kinetix;
 
 -- 1. Users Table (Authentication & Access Control)
 CREATE TABLE IF NOT EXISTS users (

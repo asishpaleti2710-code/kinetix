@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ AgentFlow AI: Autonomous Multi-Agent Sales Platform
+# ⚡ Kinetix: Autonomous Multi-Agent Sales Platform
 
 **Production-Grade Agentic AI Sales Employee built with LangGraph, FastAPI, Gemini API, ChromaDB RAG, and MySQL.**
 
@@ -18,9 +18,9 @@
 
 ## 🌟 Executive Summary
 
-**AgentFlow AI** is an enterprise-ready, autonomous AI Sales Representative designed to automate inbound customer qualification, technical discovery, documentation question-answering, meeting scheduling, and omnichannel follow-up generation.
+**Kinetix** is an enterprise-ready, autonomous AI Sales Representative designed to automate inbound customer qualification, technical discovery, documentation question-answering, meeting scheduling, and omnichannel follow-up generation.
 
-Rather than a simple conversational chatbot, **AgentFlow AI** implements a stateful **Multi-Agent Architecture** orchestrated via **LangGraph**, complete with:
+Rather than a simple conversational chatbot, **Kinetix** implements a stateful **Multi-Agent Architecture** orchestrated via **LangGraph**, complete with:
 - Dynamic intent routing across 5 distinct categories.
 - Autonomous BANT (Budget, Authority, Need, Timeline) lead scoring (0–100) and segmentation (Hot, Warm, Cold).
 - Grounded RAG retrieval over uploaded company PDF documentation via **ChromaDB**.
@@ -108,7 +108,7 @@ The platform includes an automated testing framework to benchmark multi-agent re
 ## 📁 Repository Directory Structure
 
 ```text
-agentflow-ai/
+kinetix/
 ├── docker-compose.yml              # 1-Click deployment for MySQL 8, Backend & Frontend
 ├── .env.example                    # Environment variable template
 ├── README.md                       # Complete documentation & architecture guide
@@ -204,8 +204,8 @@ The platform supports both **MySQL 8.0** and **SQLite** via SQLAlchemy:
 ### 2. Environment Setup
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/agentflow-ai.git
-cd agentflow-ai
+git clone https://github.com/your-username/kinetix.git
+cd kinetix
 
 # Copy environment configuration
 cp .env.example backend/.env
@@ -215,7 +215,7 @@ cp .env.example backend/.env
 ```ini
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
-> **Note**: If no Gemini API key is provided, AgentFlow AI automatically engages its built-in conversational simulation engine, allowing full offline demonstration of LangGraph, tool calling, and RAG!
+> **Note**: If no Gemini API key is provided, Kinetix automatically engages its built-in conversational simulation engine, allowing full offline demonstration of LangGraph, tool calling, and RAG!
 
 ### 3. Run Backend (FastAPI)
 ```bash
@@ -252,7 +252,7 @@ docker compose up --build -d
 
 - **Frontend UI**: `http://localhost:5173`
 - **FastAPI Documentation**: `http://localhost:8000/docs`
-- **MySQL Database**: `localhost:3306` (Database: `agentflow`, User: `agentflow_user`)
+- **MySQL Database**: `localhost:3306` (Database: `kinetix`, User: `kinetix_user`)
 
 ---
 

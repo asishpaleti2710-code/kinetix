@@ -298,7 +298,7 @@ export default function LeadsPage({ onSelectLeadForChat }) {
                 }} 
                 className="btn-primary"
               >
-                <span>Simulate Chat With This Lead</span>
+                <span>Engage Lead with AI</span>
                 <ExternalLink size={15} />
               </button>
             </div>

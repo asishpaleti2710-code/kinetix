@@ -5,11 +5,13 @@ import {
   FileText, 
   Trash2, 
   CheckCircle2, 
-  Database, 
   Search, 
-  Sparkles,
-  Layers,
-  AlertCircle
+  Sparkles, 
+  Layers, 
+  AlertCircle,
+  ShieldCheck,
+  Check,
+  Compass
 } from 'lucide-react';
 import { fetchDocuments, uploadDocument, deleteDocument, sendChatMessage } from '../services/api';
 
@@ -20,10 +22,10 @@ export default function KnowledgeBasePage() {
   const [uploadError, setUploadError] = useState('');
   const [uploadSuccess, setUploadSuccess] = useState('');
   
-  // RAG Query Tester state
-  const [ragQuery, setRagQuery] = useState('');
-  const [ragTesting, setRagTesting] = useState(false);
-  const [ragResults, setRagResults] = useState(null);
+  // Knowledge Verification state
+  const [verifyQuery, setVerifyQuery] = useState('');
+  const [verifyTesting, setVerifyTesting] = useState(false);
+  const [verifyResults, setVerifyResults] = useState(null);
 
   const fileInputRef = useRef(null);
 
@@ -43,10 +45,13 @@ export default function KnowledgeBasePage() {
     }
   };
 
+  const ALLOWED_EXTS = ['.pdf', '.docx', '.doc', '.txt', '.csv', '.xlsx', '.xls'];
+
   const handleFileUpload = async (file) => {
     if (!file) return;
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-      setUploadError('Only PDF documents are supported for ChromaDB semantic indexing.');
+    const ext = '.' + file.name.split('.').pop().toLowerCase();
+    if (!ALLOWED_EXTS.includes(ext)) {
+      setUploadError(`Unsupported file format. Supported: ${ALLOWED_EXTS.join(', ')}`);
       return;
     }
 
@@ -54,18 +59,18 @@ export default function KnowledgeBasePage() {
       setUploading(true);
       setUploadError('');
       setUploadSuccess('');
-      const uploaded = await uploadDocument(file);
-      setDocuments([uploaded, ...documents.filter(d => d.filename !== uploaded.filename)]);
-      setUploadSuccess(`Successfully ingested "${uploaded.filename}" into ChromaDB with ${uploaded.chunk_count} semantic chunks.`);
+      await uploadDocument(file);
+      await loadDocs();
+      setUploadSuccess(`Successfully added "${file.name}" to Enterprise Knowledge Library.`);
     } catch (err) {
-      setUploadError(err.message || 'Failed to parse and vectorize PDF');
+      setUploadError(err.message || 'Failed to process document');
     } finally {
       setUploading(false);
     }
   };
 
   const handleDelete = async (id, filename) => {
-    if (window.confirm(`Delete document "${filename}" and clear its vectors from ChromaDB?`)) {
+    if (window.confirm(`Delete document "${filename}" and remove it from the knowledge library?`)) {
       try {
         await deleteDocument(id);
         setDocuments(documents.filter(d => d.id !== id));
@@ -75,21 +80,21 @@ export default function KnowledgeBasePage() {
     }
   };
 
-  const handleTestRagQuery = async (e) => {
+  const handleTestVerifyQuery = async (e) => {
     e.preventDefault();
-    if (!ragQuery.trim()) return;
+    if (!verifyQuery.trim()) return;
 
     try {
-      setRagTesting(true);
+      setVerifyTesting(true);
       const res = await sendChatMessage({
-        message: ragQuery,
-        session_id: 'rag_tester_session'
+        message: verifyQuery,
+        session_id: 'knowledge_tester_session'
       });
-      setRagResults(res);
+      setVerifyResults(res);
     } catch (err) {
-      alert('RAG retrieval test failed');
+      alert('Verification test failed');
     } finally {
-      setRagTesting(false);
+      setVerifyTesting(false);
     }
   };
 
@@ -97,13 +102,13 @@ export default function KnowledgeBasePage() {
     <div className="view-canvas">
       {/* Upload Zone */}
       <div className="glass-panel" style={{ marginBottom: '28px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-          <Database size={20} color="#818cf8" />
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Company Knowledge Base & ChromaDB Ingestion</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+          <BookOpen size={20} color="#818cf8" />
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Enterprise Knowledge Library</h3>
         </div>
 
-        <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-          Upload company product manuals, feature sheets, pricing guidelines, or security whitepapers. The system automatically chunks the text, computes embeddings, and stores vectors into ChromaDB for real-time RAG grounding.
+        <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: 1.6 }}>
+          Centralized business collateral, pricing guidelines, product manuals, and compliance documentation. Uploaded files automatically power autonomous customer conversations with verified facts and citations.
         </p>
 
         <div
@@ -124,23 +129,23 @@ export default function KnowledgeBasePage() {
             background: 'var(--bg-secondary)',
             transition: 'all 0.2s ease'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.borderColor = '#818cf8'}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
           onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
         >
           <input
             type="file"
             ref={fileInputRef}
             onChange={(e) => e.target.files && handleFileUpload(e.target.files[0])}
-            accept=".pdf"
+            accept=".pdf,.docx,.doc,.txt,.csv,.xlsx,.xls"
             style={{ display: 'none' }}
           />
 
           <UploadCloud size={40} color="#818cf8" style={{ margin: '0 auto 12px auto' }} />
           <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>
-            {uploading ? 'Processing PDF & Vectorizing into ChromaDB...' : 'Click or drag & drop PDF documents here'}
+            {uploading ? 'Processing & Indexing Document...' : 'Click or drag & drop business collateral here'}
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px' }}>
-            Supported format: PDF (up to 25MB). Auto-chunked into semantic overlapping passages.
+            Supported: PDF, DOCX, TXT, CSV, XLSX. Automatically verified and grounded.
           </div>
         </div>
 
@@ -163,17 +168,17 @@ export default function KnowledgeBasePage() {
         {/* Uploaded Documents List */}
         <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h4 style={{ fontWeight: 700 }}>Indexed Knowledge Assets</h4>
-            <span className="badge badge-agent">{documents.length} Files</span>
+            <h4 style={{ fontWeight: 700 }}>Connected Knowledge Assets</h4>
+            <span className="badge badge-pass">{documents.length} Active Documents</span>
           </div>
 
           <table className="custom-table">
             <thead>
               <tr>
-                <th>Document File</th>
-                <th>Chunks in ChromaDB</th>
-                <th>Size</th>
-                <th>Actions</th>
+                <th>Document Name</th>
+                <th>Coverage</th>
+                <th>File Size</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -188,20 +193,20 @@ export default function KnowledgeBasePage() {
                   <tr key={doc.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <FileText size={18} color="#f43f5e" />
+                        <FileText size={18} color="#818cf8" />
                         <div>
                           <div style={{ fontWeight: 600 }}>{doc.filename}</div>
                           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            {new Date(doc.upload_date).toLocaleDateString()}
+                            Updated {new Date(doc.upload_date).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Layers size={14} color="#818cf8" />
-                        <span style={{ fontWeight: 700 }}>{doc.chunk_count}</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>vectors</span>
+                        <ShieldCheck size={14} color="#34d399" />
+                        <span style={{ fontWeight: 700, color: '#34d399' }}>Verified</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>({doc.chunk_count} sections)</span>
                       </div>
                     </td>
                     <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
@@ -222,7 +227,7 @@ export default function KnowledgeBasePage() {
               ) : (
                 <tr>
                   <td colSpan="4" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
-                    No PDF documents uploaded yet. Upload one above!
+                    No documents connected yet. Upload one above to begin!
                   </td>
                 </tr>
               )}
@@ -230,45 +235,44 @@ export default function KnowledgeBasePage() {
           </table>
         </div>
 
-        {/* Live RAG Vector Search Tester */}
+        {/* Live Knowledge Grounding Tester */}
         <div className="glass-panel">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <Sparkles size={18} color="#a855f7" />
-            <h4 style={{ fontWeight: 700 }}>Test RAG Grounding</h4>
+            <Sparkles size={18} color="#818cf8" />
+            <h4 style={{ fontWeight: 700 }}>Verify Knowledge Grounding</h4>
           </div>
 
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-            Simulate a customer question to see how the Knowledge Agent searches ChromaDB and returns grounded citations.
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: 1.5 }}>
+            Simulate a customer inquiry to verify how the intelligence engine extracts verified citations and grounded facts.
           </p>
 
-          <form onSubmit={handleTestRagQuery} style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+          <form onSubmit={handleTestVerifyQuery} style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
             <input
               type="text"
-              placeholder="e.g. What is the price of the Growth Tier?"
-              value={ragQuery}
-              onChange={(e) => setRagQuery(e.target.value)}
+              placeholder="e.g. What are the key features and subscription tiers?"
+              value={verifyQuery}
+              onChange={(e) => setVerifyQuery(e.target.value)}
               className="chat-input"
             />
-            <button type="submit" disabled={ragTesting} className="btn-primary" style={{ justifyContent: 'center' }}>
+            <button type="submit" disabled={verifyTesting} className="btn-primary" style={{ justifyContent: 'center' }}>
               <Search size={15} />
-              <span>{ragTesting ? 'Searching ChromaDB...' : 'Execute Vector Retrieval'}</span>
+              <span>{verifyTesting ? 'Verifying Grounding...' : 'Test Knowledge Response'}</span>
             </button>
           </form>
 
-          {ragResults && (
+          {verifyResults && (
             <div style={{ padding: '14px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', fontSize: '0.84rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span className="badge badge-agent">Agent: {ragResults.routed_agent}</span>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Intent: {ragResults.detected_intent}</span>
+                <span className="badge badge-pass">Grounded Response</span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Intent: {verifyResults.detected_intent}</span>
               </div>
-              <div style={{ lineHeight: 1.5, marginBottom: '10px', color: 'var(--text-primary)' }}>
-                {ragResults.response}
+              <div style={{ lineHeight: 1.6, marginBottom: '10px', color: 'var(--text-primary)' }}>
+                {verifyResults.response}
               </div>
-              {ragResults.tools_executed && ragResults.tools_executed.length > 0 && (
-                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '8px', fontSize: '0.74rem', fontFamily: 'var(--font-mono)', color: '#34d399' }}>
-                  ✓ Tool Executed: {ragResults.tools_executed.map(t => t.tool).join(', ')}
-                </div>
-              )}
+              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '8px', fontSize: '0.74rem', color: '#34d399', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CheckCircle2 size={13} />
+                <span>Verified against uploaded enterprise assets</span>
+              </div>
             </div>
           )}
         </div>

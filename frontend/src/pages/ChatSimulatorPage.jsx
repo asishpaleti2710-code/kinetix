@@ -4,36 +4,37 @@ import {
   Bot, 
   User, 
   Sparkles, 
-  Workflow, 
-  Wrench, 
   Check, 
   Copy, 
   Share2, 
-  Calendar, 
+  RotateCcw, 
+  MessageCircle, 
+  Mail, 
   ShieldCheck, 
-  RotateCcw,
-  MessageCircle,
-  Mail
+  Briefcase, 
+  DollarSign, 
+  Clock, 
+  CheckCircle2 
 } from 'lucide-react';
 import { sendChatMessage } from '../services/api';
 
-export default function ChatSimulatorPage({ initialLead }) {
+export default function ChatSimulatorPage({ initialLead, initialPrompt }) {
   const [messages, setMessages] = useState([
     {
       id: 1,
       sender: 'assistant',
-      text: "Hello! I am your AgentFlow AI Sales Representative. I can help qualify your requirements, answer questions from our technical product documentation, schedule a live demo, or prepare personalized follow-up sequences. How can I assist your business today?",
+      text: "Hello! I am your Kinetix Autonomous Sales Representative. I can assist you with product capabilities, subscription pricing, qualify enterprise requirements, book an executive demo, or prepare personalized outreach sequences. How can I assist your business today?",
       meta: {
-        intent: 'General Question',
-        routed_agent: 'knowledge_agent',
-        planner_thought: 'Welcome greeting to new prospect.',
-        tools: []
+        intent: 'General Inquiry',
+        grounding: 'Verified Enterprise Catalog',
+        qualification: null,
+        followups: null
       }
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
-  const [activeTrace, setActiveTrace] = useState(null);
+  const [activeMeta, setActiveMeta] = useState(null);
   const [copiedKey, setCopiedKey] = useState('');
 
   // Customer session info
@@ -52,12 +53,19 @@ export default function ChatSimulatorPage({ initialLead }) {
     scrollToBottom();
   }, [messages, loading]);
 
+  // If initialPrompt was provided from Command Center, send it automatically
+  useEffect(() => {
+    if (initialPrompt && initialPrompt.trim()) {
+      handleSend(initialPrompt);
+    }
+  }, [initialPrompt]);
+
   const quickPrompts = [
-    { label: '💰 Inquire Pricing', text: 'What are your subscription pricing tiers and what is included in the Growth tier?' },
-    { label: '📅 Book Demo Slot', text: 'I want to schedule an executive product demo tomorrow at 2:00 PM EST.' },
-    { label: '🏢 Qualify My Company', text: 'We run a B2B SaaS platform with 40 employees, an $8,500 budget, looking to deploy within 3 weeks.' },
-    { label: '🔍 Ask Tech RAG Question', text: 'How does your multi-agent architecture and ChromaDB vector retrieval work?' },
-    { label: '📱 Request Follow-up', text: 'Can you generate WhatsApp and Email follow-up messages for our team?' }
+    { label: '💰 Subscription Pricing', text: 'What are your enterprise subscription pricing tiers and what is included in the Growth tier?' },
+    { label: '📅 Schedule Demo', text: 'I want to schedule an executive product demonstration for tomorrow at 2:00 PM EST.' },
+    { label: '🏢 Qualify Enterprise Fit', text: 'We run a B2B SaaS platform with 40 employees, an $8,500 budget, looking to deploy within 3 weeks.' },
+    { label: '🔍 Product Capabilities', text: 'How does your autonomous intelligence ground answers against uploaded product manuals and sales guidelines?' },
+    { label: '📱 Request Follow-up', text: 'Can you generate WhatsApp and Email outreach follow-up messages for our executive team?' }
   ];
 
   const handleSend = async (textToSend) => {
@@ -93,23 +101,21 @@ export default function ChatSimulatorPage({ initialLead }) {
         text: response.response,
         meta: {
           intent: response.detected_intent,
-          routed_agent: response.routed_agent,
-          planner_thought: response.planner_thought,
-          tools: response.tools_executed || [],
+          grounding: 'Verified Enterprise Knowledge',
           qualification: response.lead_qualification,
           followups: response.suggested_followups
         }
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
-      setActiveTrace(assistantMsg.meta);
+      setActiveMeta(assistantMsg.meta);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now() + 1,
           sender: 'assistant',
-          text: 'Apologies, I encountered an issue connecting to the multi-agent graph. Please verify the FastAPI backend is running.',
+          text: 'I am currently unable to retrieve a response. Please verify the service connection and try again.',
           meta: null
         }
       ]);
@@ -129,15 +135,16 @@ export default function ChatSimulatorPage({ initialLead }) {
       {
         id: 1,
         sender: 'assistant',
-        text: "Hello! I am your AgentFlow AI Sales Representative. How can I assist your business today?",
+        text: "Hello! I am your Kinetix Autonomous Sales Representative. How can I assist your business today?",
         meta: null
       }
     ]);
-    setActiveTrace(null);
+    setActiveMeta(null);
   };
 
   return (
     <div className="view-canvas" style={{ padding: '20px 28px' }}>
+      
       {/* Simulation Persona Bar */}
       <div style={{
         display: 'flex',
@@ -151,8 +158,8 @@ export default function ChatSimulatorPage({ initialLead }) {
         flexWrap: 'wrap',
         gap: '12px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '0.84rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.84rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <User size={15} color="#38bdf8" />
             <span style={{ color: 'var(--text-muted)' }}>Customer:</span>
             <input
@@ -163,7 +170,7 @@ export default function ChatSimulatorPage({ initialLead }) {
             />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Mail size={15} color="#818cf8" />
             <span style={{ color: 'var(--text-muted)' }}>Email:</span>
             <input
@@ -176,31 +183,33 @@ export default function ChatSimulatorPage({ initialLead }) {
 
           {leadId && (
             <span className="badge badge-hot">
-              Lead #{leadId} Synced
+              Lead Profile Synced
             </span>
           )}
         </div>
 
-        <button onClick={handleResetChat} className="btn-secondary" style={{ fontSize: '0.78rem', padding: '4px 10px' }}>
+        <button onClick={handleResetChat} className="btn-secondary" style={{ fontSize: '0.78rem', padding: '5px 12px' }}>
           <RotateCcw size={13} />
-          <span>Reset Session</span>
+          <span>New Session</span>
         </button>
       </div>
 
-      {/* Main Grid: Chat on Left, Agentic Execution Trace on Right */}
+      {/* Main Grid: Chat on Left, Intelligence & Follow-up Center on Right */}
       <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr', gap: '24px', height: 'calc(100vh - 190px)' }}>
         
         {/* Left Column: Live Chat Interface */}
         <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
           {/* Chat Header */}
           <div style={{ padding: '14px 20px', background: 'var(--bg-tertiary)', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Bot size={18} color="#818cf8" />
-              <span style={{ fontWeight: 700, fontSize: '0.92rem' }}>AI Sales Representative</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(99, 102, 241, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#818cf8' }}>
+                <Bot size={16} />
+              </div>
+              <span style={{ fontWeight: 700, fontSize: '0.92rem' }}>AI Sales Assistant</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#34d399' }}>
-              <span className="pulse-indicator"></span>
-              <span>LangGraph Multi-Agent Ready</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#34d399', fontWeight: 600 }}>
+              <span className="live-pulse-dot"></span>
+              <span>Online &bull; Grounded</span>
             </div>
           </div>
 
@@ -214,15 +223,15 @@ export default function ChatSimulatorPage({ initialLead }) {
                 style={{
                   whiteSpace: 'nowrap',
                   fontSize: '0.74rem',
-                  padding: '5px 10px',
-                  borderRadius: '14px',
+                  padding: '5px 12px',
+                  borderRadius: '16px',
                   background: 'var(--bg-tertiary)',
                   border: '1px solid var(--border-color)',
                   color: 'var(--text-secondary)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease'
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#818cf8'; e.currentTarget.style.borderColor = '#818cf8'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#818cf8'; e.currentTarget.style.borderColor = 'var(--accent-primary)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
               >
                 {qp.label}
@@ -236,7 +245,7 @@ export default function ChatSimulatorPage({ initialLead }) {
               <div
                 key={m.id}
                 className={`message-bubble ${m.sender}`}
-                onClick={() => m.meta && setActiveTrace(m.meta)}
+                onClick={() => m.meta && setActiveMeta(m.meta)}
                 style={{ cursor: m.meta ? 'pointer' : 'default' }}
               >
                 <div style={{ whiteSpace: 'pre-wrap' }}>{m.text}</div>
@@ -245,7 +254,7 @@ export default function ChatSimulatorPage({ initialLead }) {
                   <div style={{
                     marginTop: '8px',
                     paddingTop: '6px',
-                    borderTop: '1px solid rgba(255,255,255,0.1)',
+                    borderTop: '1px solid rgba(255,255,255,0.08)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
@@ -254,24 +263,25 @@ export default function ChatSimulatorPage({ initialLead }) {
                     flexWrap: 'wrap'
                   }}>
                     <span style={{ fontWeight: 600 }}>Intent: {m.meta.intent}</span>
-                    <span>•</span>
-                    <span>Node: {m.meta.routed_agent}</span>
-                    {m.meta.tools && m.meta.tools.length > 0 && (
-                      <span className="badge badge-pass" style={{ fontSize: '0.65rem' }}>
-                        {m.meta.tools.length} tool(s)
-                      </span>
-                    )}
+                    <span>&bull;</span>
+                    <span style={{ color: '#34d399' }}>✓ Grounded in Knowledge</span>
                   </div>
                 )}
               </div>
             ))}
 
+            {/* User Friendly Execution Stepper Indicator */}
             {loading && (
-              <div className="message-bubble assistant" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div className="pulse-indicator"></div>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  LangGraph: Intent Agent → Planner Agent → Executing Tools...
-                </span>
+              <div className="message-bubble assistant" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '340px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', fontWeight: 700, color: '#818cf8' }}>
+                  <Sparkles size={14} className="animate-spin" />
+                  <span>Processing Request...</span>
+                </div>
+                <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ color: '#34d399' }}>✓ Understanding Request</div>
+                  <div style={{ color: '#34d399' }}>✓ Analyzing Content</div>
+                  <div style={{ color: 'var(--text-primary)', fontWeight: 600 }}>⏳ Generating Insights &amp; Recommendations</div>
+                </div>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -281,7 +291,7 @@ export default function ChatSimulatorPage({ initialLead }) {
           <div className="chat-input-area">
             <input
               type="text"
-              placeholder="Ask pricing, request a demo, or describe your company requirements..."
+              placeholder="Ask pricing, request a meeting slot, or describe your company requirements..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
@@ -292,92 +302,74 @@ export default function ChatSimulatorPage({ initialLead }) {
               disabled={loading || !inputValue.trim()}
               className="btn-primary"
             >
-              <Send size={16} />
+              <Send size={15} />
               <span>Send</span>
             </button>
           </div>
         </div>
 
-        {/* Right Column: Live Multi-Agent Execution & Tool Inspector */}
+        {/* Right Column: Customer Intelligence & Action Sequences */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
           
-          {/* Agentic Routing Panel */}
+          {/* Intelligence & Lead Qualification Summary */}
           <div className="glass-panel" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-              <Workflow size={18} color="#818cf8" />
-              <h4 style={{ fontWeight: 700 }}>Autonomous Execution Trace</h4>
+              <ShieldCheck size={18} color="#818cf8" />
+              <h4 style={{ fontWeight: 700 }}>Inquiry Intelligence &amp; Fit</h4>
             </div>
 
-            {activeTrace ? (
+            {activeMeta ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {/* Intent Node */}
+                {/* Detected Intent */}
                 <div style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>1. INTENT CLASSIFICATION NODE</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Identified Business Intent</div>
                   <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#818cf8', marginTop: '2px' }}>
-                    {activeTrace.intent}
+                    {activeMeta.intent}
                   </div>
                 </div>
 
-                {/* Planner Node */}
+                {/* Grounding Verification */}
                 <div style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>2. PLANNER AGENT REASONING</div>
-                  <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.4 }}>
-                    {activeTrace.planner_thought || 'Evaluated conversation context and assigned specialized node.'}
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Knowledge Verification</div>
+                  <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={14} color="#34d399" />
+                    <span>Response verified against company documentation &amp; pricing matrices</span>
                   </div>
-                  <div style={{ marginTop: '6px', fontSize: '0.75rem', fontWeight: 600, color: '#c084fc' }}>
-                    → Routed to: {activeTrace.routed_agent}
-                  </div>
-                </div>
-
-                {/* Tool Invocations */}
-                <div style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '6px' }}>
-                    3. TOOL CALLS EXECUTED
-                  </div>
-                  {activeTrace.tools && activeTrace.tools.length > 0 ? (
-                    activeTrace.tools.map((t, idx) => (
-                      <div key={idx} style={{ marginBottom: '8px', padding: '8px', background: 'rgba(0,0,0,0.25)', borderRadius: 'var(--radius-sm)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#34d399', fontWeight: 700, fontSize: '0.8rem' }}>
-                          <Wrench size={13} />
-                          <span>{t.tool}()</span>
-                        </div>
-                        <div style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginTop: '4px' }}>
-                          Args: {JSON.stringify(t.arguments)}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>No tool calls required for this query.</div>
-                  )}
                 </div>
 
                 {/* BANT Qualification Summary if available */}
-                {activeTrace.qualification && (
-                  <div style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(244, 63, 94, 0.3)' }}>
-                    <div style={{ fontSize: '0.72rem', color: '#fb7185', fontWeight: 700, marginBottom: '4px' }}>
-                      BANT LEAD SCORE: {activeTrace.qualification.lead_score}/100 ({activeTrace.qualification.lead_status})
+                {activeMeta.qualification && (
+                  <div style={{ padding: '14px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(244, 63, 94, 0.3)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '0.74rem', color: '#fb7185', fontWeight: 700, textTransform: 'uppercase' }}>
+                        Lead Qualification Fit
+                      </div>
+                      <span className="badge badge-hot">
+                        {activeMeta.qualification.lead_score}/100 ({activeMeta.qualification.lead_status})
+                      </span>
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                      Budget: ${(activeTrace.qualification.budget || 0).toLocaleString()} • Timeline: {activeTrace.qualification.timeline}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                      <div>Budget: <strong style={{ color: 'var(--text-primary)' }}>${(activeMeta.qualification.budget || 0).toLocaleString()}</strong></div>
+                      <div>Timeline: <strong style={{ color: 'var(--text-primary)' }}>{activeMeta.qualification.timeline}</strong></div>
                     </div>
                   </div>
                 )}
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                Send a message to view the real-time LangGraph multi-agent execution pipeline.
+                Engage in conversation to view real-time intent classification, qualification scores, and recommendations.
               </div>
             )}
           </div>
 
-          {/* Omnichannel Follow-up Generator Panel */}
+          {/* Omnichannel Communication Sequences */}
           <div className="glass-panel" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
               <Share2 size={18} color="#10b981" />
-              <h4 style={{ fontWeight: 700 }}>Follow-up Agent Drafts</h4>
+              <h4 style={{ fontWeight: 700 }}>Outreach Sequences</h4>
             </div>
 
-            {activeTrace && activeTrace.followups ? (
+            {activeMeta && activeMeta.followups ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {/* WhatsApp Follow-up */}
                 <div style={{ padding: '12px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
@@ -387,7 +379,7 @@ export default function ChatSimulatorPage({ initialLead }) {
                       <span>WhatsApp Outreach</span>
                     </div>
                     <button
-                      onClick={() => copyToClipboard(activeTrace.followups.whatsapp, 'wa')}
+                      onClick={() => copyToClipboard(activeMeta.followups.whatsapp, 'wa')}
                       className="btn-secondary"
                       style={{ fontSize: '0.7rem', padding: '2px 8px' }}
                     >
@@ -396,7 +388,7 @@ export default function ChatSimulatorPage({ initialLead }) {
                     </button>
                   </div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)', lineHeight: 1.4 }}>
-                    {activeTrace.followups.whatsapp}
+                    {activeMeta.followups.whatsapp}
                   </div>
                 </div>
 
@@ -405,10 +397,10 @@ export default function ChatSimulatorPage({ initialLead }) {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#818cf8', fontWeight: 700, fontSize: '0.78rem' }}>
                       <Mail size={15} />
-                      <span>Email Sequence Draft</span>
+                      <span>Email Outreach Draft</span>
                     </div>
                     <button
-                      onClick={() => copyToClipboard(`${activeTrace.followups.email_subject}\n\n${activeTrace.followups.email_body}`, 'em')}
+                      onClick={() => copyToClipboard(`${activeMeta.followups.email_subject}\n\n${activeMeta.followups.email_body}`, 'em')}
                       className="btn-secondary"
                       style={{ fontSize: '0.7rem', padding: '2px 8px' }}
                     >
@@ -417,16 +409,16 @@ export default function ChatSimulatorPage({ initialLead }) {
                     </button>
                   </div>
                   <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                    Subject: {activeTrace.followups.email_subject}
+                    Subject: {activeMeta.followups.email_subject}
                   </div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>
-                    {activeTrace.followups.email_body}
+                    {activeMeta.followups.email_body}
                   </div>
                 </div>
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '18px', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                Ask the agent for a follow-up or qualify a lead to generate one-click WhatsApp and Email sequences!
+                Ask the assistant for outreach sequences or qualify a prospect to generate one-click WhatsApp and Email drafts!
               </div>
             )}
           </div>

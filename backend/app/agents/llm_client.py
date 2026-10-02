@@ -96,16 +96,25 @@ def _generate_fallback_response(prompt: str, system_instruction: Optional[str], 
 
     # 3. Lead Qualification Agent Mode
     if json_mode and ("lead qualification" in lower_sys or "bant" in lower_sys):
-        budget_match = re.search(r"\$?([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?k?)", lower_user)
+        # Prefer budget markers: "$8000", "8000 budget", "8k budget", etc.
         budget = 8000.0
-        if budget_match:
-            raw = budget_match.group(1).replace(",", "").lower()
-            if "k" in raw:
-                try: budget = float(raw.replace("k", "")) * 1000
-                except: budget = 8000.0
-            else:
-                try: budget = float(raw)
-                except: budget = 8000.0
+        # Try dollar-prefixed first (most precise)
+        dollar_match = re.search(r"\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)\s*k?", lower_user)
+        if dollar_match:
+            raw = dollar_match.group(1).replace(",", "")
+            try:
+                budget = float(raw) * 1000 if "k" in lower_user[dollar_match.end():dollar_match.end()+2] else float(raw)
+            except Exception:
+                budget = 8000.0
+        else:
+            # Try "N000 budget" or "Nk budget" patterns
+            budget_ctx = re.search(r"([0-9]{3,6}(?:\.[0-9]+)?)\s*(?:k\b)?\s*(?:budget|monthly|per month|/mo)", lower_user)
+            if budget_ctx:
+                raw = budget_ctx.group(1).replace(",", "")
+                try:
+                    budget = float(raw) * 1000 if "k" in lower_user[budget_ctx.start():budget_ctx.end()] and float(raw) < 1000 else float(raw)
+                except Exception:
+                    budget = 8000.0
 
         emp_match = re.search(r"([0-9]+)\s*(?:employee|people|team|member|staff)", lower_user)
         emp_count = int(emp_match.group(1)) if emp_match else 25
@@ -136,25 +145,25 @@ def _generate_fallback_response(prompt: str, system_instruction: Optional[str], 
     # 5. Fallback Conversational Response
     if any(w in lower_user for w in ["price", "cost", "tier", "starter", "growth"]):
         return (
-            "AgentFlow AI offers three flexible tiers:\n"
+            "Kinetix offers three flexible tiers:\n"
             "• **Starter Tier ($499/mo)**: 1 AI Sales Agent, 5,000 conversations/mo, standard RAG.\n"
             "• **Growth Tier ($1,499/mo)**: 5 AI Sales Agents, 25,000 conversations/mo, BANT scoring, CRM integrations.\n"
             "• **Enterprise Tier**: Custom pricing (from $3,500/mo), unlimited agents, custom LangGraph workflows, SOC2 compliance.\n\n"
-            "*Reference: [AgentFlow_Product_Manual.pdf, Page 1]*"
+            "*Reference: [Kinetix_Product_Manual.pdf, Page 1]*"
         )
     elif any(w in lower_user for w in ["fly", "airplane", "iphone", "rocket"]):
         return (
-            "AgentFlow AI is an autonomous AI software platform designed for sales qualification, RAG retrieval, "
+            "Kinetix is an autonomous AI software platform designed for sales qualification, RAG retrieval, "
             "and appointment scheduling. We cannot fly airplanes or build physical devices. Our agents operate strictly "
             "as digital enterprise sales representatives.\n\n"
-            "*Reference: [AgentFlow_Product_Manual.pdf, Page 1]*"
+            "*Reference: [Kinetix_Product_Manual.pdf, Page 1]*"
         )
     elif any(w in lower_user for w in ["chromadb", "rag", "vector", "architecture"]):
         return (
-            "AgentFlow AI utilizes LangGraph for stateful multi-agent orchestration and ChromaDB for vector retrieval. "
+            "Kinetix utilizes LangGraph for stateful multi-agent orchestration and ChromaDB for vector retrieval. "
             "Company PDFs are chunked semantically and stored in persistent vector collections. When a customer asks a question, "
             "the Knowledge Agent queries ChromaDB with cosine similarity and synthesizes grounded answers with strict page references.\n\n"
-            "*Reference: [AgentFlow_Product_Manual.pdf, Page 1]*"
+            "*Reference: [Kinetix_Product_Manual.pdf, Page 1]*"
         )
 
-    return "Hello! I am your AgentFlow AI Sales Representative. How can I assist your business today?"
+    return "Hello! I am your Kinetix Sales Representative. How can I assist your business today?"

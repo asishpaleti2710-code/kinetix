@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import (
-    Column, Integer, String, Float, Text, DateTime, Date, ForeignKey, Numeric
+    Column, Integer, String, Float, Text, DateTime, Date, ForeignKey, Numeric, Boolean
 )
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -78,8 +78,69 @@ class Document(Base):
     filename = Column(String(255), nullable=False, index=True)
     file_path = Column(String(500), nullable=True)
     file_size = Column(Integer, default=0)
+    file_type = Column(String(50), nullable=True)  # pdf, docx, txt, csv, xlsx
     chunk_count = Column(Integer, default=0)
     upload_date = Column(DateTime, default=datetime.utcnow)
+
+    # Document Intelligence analysis fields
+    analysis = relationship("DocumentAnalysis", back_populates="document", uselist=False, cascade="all, delete-orphan")
+
+
+class DocumentAnalysis(Base):
+    """Stores AI-generated analysis for each uploaded document."""
+    __tablename__ = "document_analyses"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+
+    # Core analysis outputs
+    doc_type = Column(String(100), nullable=True)            # "resume", "research_paper", "business_doc", "general_pdf"
+    executive_summary = Column(Text, nullable=True)
+    key_topics = Column(Text, nullable=True)                  # JSON list
+    key_entities = Column(Text, nullable=True)                # JSON list
+    key_takeaways = Column(Text, nullable=True)               # JSON list
+    actionable_suggestions = Column(Text, nullable=True)      # JSON list
+    risks = Column(Text, nullable=True)                       # JSON list
+    opportunities = Column(Text, nullable=True)               # JSON list
+    recommendations = Column(Text, nullable=True)             # JSON list
+    important_metrics = Column(Text, nullable=True)           # JSON list of metrics with value, label, trend
+
+    # Resume-specific
+    ats_score = Column(Float, nullable=True)
+    missing_skills = Column(Text, nullable=True)              # JSON list
+    resume_strengths = Column(Text, nullable=True)            # JSON list
+    resume_weaknesses = Column(Text, nullable=True)           # JSON list
+    recommended_projects = Column(Text, nullable=True)        # JSON list
+    recommended_certifications = Column(Text, nullable=True)  # JSON list
+    job_match_percentage = Column(Float, nullable=True)
+
+    # Research paper-specific
+    abstract_summary = Column(Text, nullable=True)
+    methodology = Column(Text, nullable=True)
+    key_findings = Column(Text, nullable=True)                # JSON list
+    limitations = Column(Text, nullable=True)                 # JSON list
+    future_scope = Column(Text, nullable=True)
+    simplified_explanation = Column(Text, nullable=True)
+
+    # Business document-specific
+    swot_strengths = Column(Text, nullable=True)              # JSON list
+    swot_weaknesses = Column(Text, nullable=True)             # JSON list
+    swot_opportunities = Column(Text, nullable=True)          # JSON list
+    swot_threats = Column(Text, nullable=True)                # JSON list
+    strategic_recommendations = Column(Text, nullable=True)   # JSON list
+    action_plan = Column(Text, nullable=True)                 # JSON list
+
+    # Questions user should ask
+    suggested_questions = Column(Text, nullable=True)         # JSON list
+
+    # Status & Debug
+    analysis_status = Column(String(50), default="pending")  # pending, processing, complete, failed
+    error_message = Column(Text, nullable=True)
+    debug_info = Column(Text, nullable=True)                 # JSON object containing granular pipeline step statuses & logs
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    document = relationship("Document", back_populates="analysis")
 
 
 class Evaluation(Base):

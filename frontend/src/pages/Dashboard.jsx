@@ -1,19 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  Users, 
-  Flame, 
-  CalendarCheck, 
-  ShieldCheck, 
-  ArrowUpRight, 
-  Bot, 
-  Workflow, 
   Sparkles, 
-  Clock, 
-  FileText 
+  FileText, 
+  Bot, 
+  Users, 
+  Calendar, 
+  Share2, 
+  ArrowRight, 
+  Flame, 
+  Search, 
+  Zap, 
+  Compass, 
+  BookOpen, 
+  CheckCircle2 
 } from 'lucide-react';
 import { fetchDashboardStats } from '../services/api';
 
-export default function Dashboard({ setCurrentTab }) {
+export default function Dashboard({ setCurrentTab, onCommandExecute }) {
+  const [promptInput, setPromptInput] = useState('');
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,330 +37,283 @@ export default function Dashboard({ setCurrentTab }) {
     }
   };
 
-  const statCards = [
+  // 6 Primary Floating 3D Actions requested by user:
+  const actionCards = [
     {
-      label: 'Total Leads Qualified',
-      value: stats ? stats.total_leads : '—',
+      id: 'doc',
+      title: 'Analyze Document',
+      description: 'Upload contracts, PDFs, or profiles for 3D executive synthesis & risk extraction.',
+      icon: FileText,
+      tab: 'doc_intelligence',
+      gradient: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+      glow: 'rgba(99, 102, 241, 0.4)',
+      badge: 'Hero 3D'
+    },
+    {
+      id: 'chat_kb',
+      title: 'Chat with Knowledge Base',
+      description: 'Conversational intelligence grounded in verified enterprise documentation.',
+      icon: BookOpen,
+      tab: 'knowledge',
+      prompt: 'Summarize our key enterprise product offerings and pricing structures.',
+      gradient: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+      glow: 'rgba(6, 182, 212, 0.4)',
+      badge: 'Grounded'
+    },
+    {
+      id: 'insights',
+      title: 'Generate Insights',
+      description: 'Synthesize cross-document opportunities, competitive strengths, and SWOT.',
+      icon: Sparkles,
+      tab: 'doc_intelligence',
+      gradient: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+      glow: 'rgba(236, 72, 153, 0.4)',
+      badge: 'Autonomous'
+    },
+    {
+      id: 'qualify',
+      title: 'Qualify Lead',
+      description: 'Evaluate BANT criteria (Budget, Authority, Need, Timeline) and probability scores.',
       icon: Users,
-      gradient: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-      subtext: '+28% from automated inbound'
+      tab: 'leads',
+      gradient: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)',
+      glow: 'rgba(244, 63, 94, 0.4)',
+      badge: 'BANT Fit'
     },
     {
-      label: 'High-Value Hot Leads',
-      value: stats ? stats.hot_leads : '—',
-      icon: Flame,
-      gradient: 'linear-gradient(135deg, #f43f5e 0%, #be123c 100%)',
-      subtext: 'BANT Score >= 75/100'
+      id: 'schedule',
+      title: 'Schedule Meeting',
+      description: 'Book executive demonstrations with real-time calendar slot reservation.',
+      icon: Calendar,
+      tab: 'chat',
+      prompt: 'I want to schedule an executive product demonstration for tomorrow.',
+      gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+      glow: 'rgba(16, 185, 129, 0.4)',
+      badge: 'Calendar'
     },
     {
-      label: 'Demos & Meetings Booked',
-      value: stats ? stats.meetings_scheduled : '—',
-      icon: CalendarCheck,
-      gradient: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
-      subtext: 'Autonomous Appointment Agent'
-    },
-    {
-      label: 'Agent Accuracy Benchmark',
-      value: stats ? `${stats.agent_accuracy}%` : '—',
-      icon: ShieldCheck,
-      gradient: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
-      subtext: 'Evaluation Harness Score'
+      id: 'followup',
+      title: 'Generate Follow-up',
+      description: 'Draft customized multi-touch WhatsApp and Email sequences instantly.',
+      icon: Share2,
+      tab: 'chat',
+      prompt: 'Generate personalized WhatsApp and email follow-up sequences for an enterprise buyer.',
+      gradient: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)',
+      glow: 'rgba(59, 130, 246, 0.4)',
+      badge: 'Omnichannel'
     }
   ];
 
-  return (
-    <div className="view-canvas">
-      {/* Stat Cards Grid */}
-      <div className="stats-grid">
-        {statCards.map((c, i) => {
-          const Icon = c.icon;
-          return (
-            <div key={i} className="stat-card">
-              <div>
-                <div className="stat-label">{c.label}</div>
-                <div className="stat-value">{c.value}</div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  {c.subtext}
-                </div>
-              </div>
-              <div className="stat-icon" style={{ background: c.gradient, color: 'white' }}>
-                <Icon size={22} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
+  const handleAction = (card) => {
+    if (card.prompt && onCommandExecute) {
+      onCommandExecute(card.prompt);
+    }
+    setCurrentTab(card.tab);
+  };
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginBottom: '28px' }}>
-        {/* Multi-Agent Architecture Graph */}
-        <div className="glass-panel">
+  const handlePromptSubmit = (e) => {
+    e.preventDefault();
+    if (!promptInput.trim()) return;
+    
+    const text = promptInput.toLowerCase();
+    if (text.includes('document') || text.includes('pdf') || text.includes('upload') || text.includes('contract')) {
+      setCurrentTab('doc_intelligence');
+    } else {
+      if (onCommandExecute) {
+        onCommandExecute(promptInput);
+      }
+      setCurrentTab('chat');
+    }
+  };
+
+  return (
+    <div className="view-canvas" style={{ position: 'relative', zIndex: 1 }}>
+      <div className="command-center-container">
+        
+        {/* ==============================================================
+            3D AI COMMAND CENTER CENTERPIECE
+           ============================================================== */}
+        <div className="command-center-hero floating-3d-workspace">
+          
+          {/* 3D Holographic Core Orb with Orbital Rings */}
+          <div className="orbital-core-wrapper">
+            <div className="orbital-ring ring-1"></div>
+            <div className="orbital-ring ring-2"></div>
+            <div className="orbital-ring ring-3"></div>
+            <div className="orbital-core-sphere">
+              <Sparkles size={24} color="#ffffff" />
+            </div>
+          </div>
+
+          <div className="command-hero-header">
+            <div className="command-hero-badge badge-3d">
+              <Zap size={13} color="#00f2fe" />
+              <span>3D AI Operating System</span>
+            </div>
+            <h1 className="command-hero-title title-3d">
+              What would you like to analyze today?
+            </h1>
+            <p className="command-hero-subtitle">
+              Autonomous cognitive engine for document intelligence, sales qualification, and predictive business insights.
+            </p>
+          </div>
+
+          {/* Large Floating AI Workspace Input */}
+          <form onSubmit={handlePromptSubmit} className="command-input-wrapper">
+            <div className="command-input-box glass-input-3d">
+              <Search size={22} style={{ color: 'var(--accent-primary)', marginLeft: '6px' }} />
+              <input
+                type="text"
+                className="command-input-field"
+                placeholder="Ask any question, analyze contracts, qualify a lead, or book a demo..."
+                value={promptInput}
+                onChange={(e) => setPromptInput(e.target.value)}
+              />
+              <button type="submit" className="command-run-btn run-btn-3d">
+                <Sparkles size={16} />
+                <span>Initialize</span>
+              </button>
+            </div>
+          </form>
+
+          {/* Floating Pill Quick Filters */}
+          <div className="quick-actions-bar">
+            {['Contract Analysis', 'Executive Briefing', 'Pricing Matrix', 'Lead Scoring', 'Meeting Booking'].map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                className="quick-action-pill pill-3d"
+                onClick={() => {
+                  setPromptInput(`Analyze ${tag.toLowerCase()}`);
+                }}
+              >
+                <span>{tag}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ==============================================================
+            THE 6 FLOATING 3D ACTION CARDS
+           ============================================================== */}
+        <div style={{ marginTop: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+              <Compass size={18} color="#818cf8" />
+              <span>Autonomous Action Deck</span>
+            </div>
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Interactive 3D Cards</span>
+          </div>
+
+          <div className="action-cards-3d-grid">
+            {actionCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <div
+                  key={card.id}
+                  className="card-3d-elevated"
+                  onClick={() => handleAction(card)}
+                  style={{ '--card-glow': card.glow }}
+                >
+                  <div className="card-3d-inner">
+                    <div className="card-3d-header">
+                      <div className="card-3d-icon-box" style={{ background: card.gradient }}>
+                        <Icon size={20} color="#ffffff" />
+                      </div>
+                      <span className="card-3d-badge">{card.badge}</span>
+                    </div>
+
+                    <h3 className="card-3d-title">{card.title}</h3>
+                    <p className="card-3d-desc">{card.description}</p>
+
+                    <div className="card-3d-action-row">
+                      <span>Launch Action</span>
+                      <ArrowRight size={15} className="card-3d-arrow" />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ==============================================================
+            FLOATING 3D PRIORITY OPPORTUNITIES & FEED
+           ============================================================== */}
+        <div className="glass-panel floating-3d-panel">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Workflow size={20} color="#818cf8" />
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Autonomous LangGraph Workflow</h3>
+              <Flame size={18} color="#f43f5e" />
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Priority Opportunities &amp; Live Inquiries</h3>
             </div>
-            <span className="badge badge-agent">StateGraph Compiled</span>
-          </div>
-
-          <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-            Inbound customer queries are routed autonomously through specialized LangGraph nodes with shared state, deterministic guardrails, and automated tool invocation.
-          </p>
-
-          {/* Architecture Pipeline Visualizer */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '24px 16px',
-            background: 'var(--bg-secondary)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-color)',
-            overflowX: 'auto',
-            gap: '12px'
-          }}>
-            {/* Step 1: Customer Input */}
-            <div style={{ textAlign: 'center', minWidth: '110px' }}>
-              <div style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '50%',
-                background: 'rgba(59, 130, 246, 0.15)',
-                color: '#60a5fa',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 8px auto',
-                border: '1px solid rgba(59, 130, 246, 0.3)'
-              }}>
-                <Bot size={20} />
-              </div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>Customer</div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Input Message</div>
-            </div>
-
-            <div style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>→</div>
-
-            {/* Step 2: Intent Agent */}
-            <div style={{ textAlign: 'center', minWidth: '120px' }}>
-              <div style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '50%',
-                background: 'rgba(99, 102, 241, 0.15)',
-                color: '#818cf8',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 8px auto',
-                border: '1px solid rgba(99, 102, 241, 0.3)'
-              }}>
-                <Sparkles size={20} />
-              </div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>Intent Agent</div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>5-Way Classifier</div>
-            </div>
-
-            <div style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>→</div>
-
-            {/* Step 3: Planner Agent */}
-            <div style={{ textAlign: 'center', minWidth: '120px' }}>
-              <div style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '50%',
-                background: 'rgba(168, 85, 247, 0.15)',
-                color: '#c084fc',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 8px auto',
-                border: '1px solid rgba(168, 85, 247, 0.3)'
-              }}>
-                <Workflow size={20} />
-              </div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>Planner Agent</div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Context & Router</div>
-            </div>
-
-            <div style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>→</div>
-
-            {/* Step 4: Specialized Nodes */}
-            <div style={{ textAlign: 'center', minWidth: '140px' }}>
-              <div style={{
-                padding: '8px 12px',
-                borderRadius: 'var(--radius-sm)',
-                background: 'rgba(236, 72, 153, 0.15)',
-                color: '#f472b6',
-                border: '1px solid rgba(236, 72, 153, 0.3)',
-                fontSize: '0.74rem',
-                fontWeight: 600,
-                textAlign: 'left',
-                lineHeight: 1.4
-              }}>
-                <div>• Lead Agent</div>
-                <div>• Knowledge RAG</div>
-                <div>• Appointment</div>
-                <div>• Follow-up Agent</div>
-              </div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '4px' }}>Specialized Nodes</div>
-            </div>
-
-            <div style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>→</div>
-
-            {/* Step 5: Tool Execution */}
-            <div style={{ textAlign: 'center', minWidth: '110px' }}>
-              <div style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '50%',
-                background: 'rgba(16, 185, 129, 0.15)',
-                color: '#34d399',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 8px auto',
-                border: '1px solid rgba(16, 185, 129, 0.3)'
-              }}>
-                <ShieldCheck size={20} />
-              </div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>Tool Calls</div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>6 Executions</div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
-            <button onClick={() => setCurrentTab('chat')} className="btn-primary">
-              <Bot size={16} />
-              <span>Launch Live Agent Demo</span>
-            </button>
-            <button onClick={() => setCurrentTab('evaluation')} className="btn-secondary">
-              <ShieldCheck size={16} />
-              <span>Run Automated Evaluation Harness</span>
+            <button onClick={() => setCurrentTab('leads')} className="btn-secondary btn-3d" style={{ fontSize: '0.8rem', padding: '6px 14px' }}>
+              <span>View All Pipeline</span>
+              <ArrowRight size={14} />
             </button>
           </div>
-        </div>
 
-        {/* Lead Pipeline Distribution */}
-        <div className="glass-panel">
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '18px' }}>Pipeline Breakdown</h3>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '6px' }}>
-                <span style={{ color: '#fb7185', fontWeight: 600 }}>Hot Leads (Score 75-100)</span>
-                <span style={{ fontWeight: 700 }}>{stats ? stats.hot_leads : 0}</span>
-              </div>
-              <div style={{ width: '100%', height: '8px', background: 'var(--bg-tertiary)', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ 
-                  width: stats && stats.total_leads ? `${(stats.hot_leads / stats.total_leads) * 100}%` : '50%', 
-                  height: '100%', 
-                  background: 'linear-gradient(90deg, #f43f5e, #fb7185)' 
-                }} />
-              </div>
-            </div>
-
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '6px' }}>
-                <span style={{ color: '#fbbf24', fontWeight: 600 }}>Warm Leads (Score 50-74)</span>
-                <span style={{ fontWeight: 700 }}>{stats ? stats.warm_leads : 0}</span>
-              </div>
-              <div style={{ width: '100%', height: '8px', background: 'var(--bg-tertiary)', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ 
-                  width: stats && stats.total_leads ? `${(stats.warm_leads / stats.total_leads) * 100}%` : '25%', 
-                  height: '100%', 
-                  background: 'linear-gradient(90deg, #f59e0b, #fbbf24)' 
-                }} />
-              </div>
-            </div>
-
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '6px' }}>
-                <span style={{ color: '#94a3b8', fontWeight: 600 }}>Cold Prospects (&lt; 50)</span>
-                <span style={{ fontWeight: 700 }}>{stats ? stats.cold_leads : 0}</span>
-              </div>
-              <div style={{ width: '100%', height: '8px', background: 'var(--bg-tertiary)', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ 
-                  width: stats && stats.total_leads ? `${(stats.cold_leads / stats.total_leads) * 100}%` : '25%', 
-                  height: '100%', 
-                  background: 'linear-gradient(90deg, #64748b, #94a3b8)' 
-                }} />
-              </div>
-            </div>
-          </div>
-
-          <div style={{ marginTop: '24px', padding: '14px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Knowledge Base Docs</div>
-              <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{stats ? stats.total_documents : 1} PDFs</div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Conversations Logged</div>
-              <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{stats ? stats.total_conversations : 0}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity Stream */}
-      <div className="glass-panel">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Live Qualification Feed</h3>
-          <button onClick={() => setCurrentTab('leads')} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '5px 12px' }}>
-            <span>View All Leads</span>
-            <ArrowUpRight size={14} />
-          </button>
-        </div>
-
-        <div style={{ overflowX: 'auto' }}>
-          <table className="custom-table">
-            <thead>
-              <tr>
-                <th>Customer / Lead</th>
-                <th>Industry / Business</th>
-                <th>BANT Score</th>
-                <th>Category</th>
-                <th>Timestamp</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats && stats.recent_activity && stats.recent_activity.length > 0 ? (
-                stats.recent_activity.map((item) => (
-                  <tr key={item.id}>
-                    <td style={{ fontWeight: 600 }}>{item.title.replace('New Lead Qualified: ', '')}</td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{item.business}</td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: 700 }}>{item.score}/100</span>
-                        <div style={{ width: '60px', height: '6px', background: 'var(--bg-tertiary)', borderRadius: '3px' }}>
-                          <div style={{
-                            width: `${item.score}%`,
-                            height: '100%',
-                            background: item.score >= 75 ? '#f43f5e' : (item.score >= 50 ? '#f59e0b' : '#64748b'),
-                            borderRadius: '3px'
-                          }} />
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`badge ${
-                        item.status === 'Hot' ? 'badge-hot' : (item.status === 'Warm' ? 'badge-warm' : 'badge-cold')
-                      }`}>
-                        {item.status}
-                      </span>
-                    </td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{item.time}</td>
-                  </tr>
-                ))
-              ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table className="custom-table table-3d">
+              <thead>
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px' }}>
-                    No leads recorded yet. Try sending a message in the AI Sales Simulator!
-                  </td>
+                  <th>Prospect / Organization</th>
+                  <th>Industry Domain</th>
+                  <th>Fit Score</th>
+                  <th>Intent Priority</th>
+                  <th>Activity Timestamp</th>
+                  <th>Autonomous Action</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {stats && stats.recent_activity && stats.recent_activity.length > 0 ? (
+                  stats.recent_activity.map((item) => (
+                    <tr key={item.id} className="row-3d-hover">
+                      <td style={{ fontWeight: 600 }}>{item.title.replace('New Lead Qualified: ', '')}</td>
+                      <td style={{ color: 'var(--text-secondary)' }}>{item.business}</td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontWeight: 800 }}>{item.score}/100</span>
+                          <div style={{ width: '64px', height: '6px', background: 'var(--bg-tertiary)', borderRadius: '3px' }}>
+                            <div style={{
+                              width: `${item.score}%`,
+                              height: '100%',
+                              background: item.score >= 75 ? 'linear-gradient(90deg, #f43f5e, #fb7185)' : (item.score >= 50 ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : '#64748b'),
+                              borderRadius: '3px'
+                            }} />
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`badge ${
+                          item.status === 'Hot' ? 'badge-hot' : (item.status === 'Warm' ? 'badge-warm' : 'badge-cold')
+                        }`}>
+                          {item.status} Priority
+                        </span>
+                      </td>
+                      <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{item.time}</td>
+                      <td>
+                        <button 
+                          onClick={() => setCurrentTab('chat')}
+                          className="btn-primary btn-mini-3d"
+                          style={{ fontSize: '0.74rem', padding: '5px 12px' }}
+                        >
+                          Engage AI
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '28px' }}>
+                      No recent inquiries recorded. Use the AI Command Center above to launch an analysis!
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
+
       </div>
     </div>
   );

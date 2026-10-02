@@ -26,6 +26,35 @@ def get_db():
         db.close()
 
 def init_db():
-    """Initializes tables in database if they don't already exist"""
-    import app.models.models # Register all SQLAlchemy models
+    """Initializes tables in database if they don't already exist and applies schema migrations"""
+    import app.models.models  # Register all SQLAlchemy models
     Base.metadata.create_all(bind=engine)
+
+    # Check and migrate columns dynamically for existing SQLite/MySQL databases
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            # Check documents.file_type column
+            try:
+                conn.execute(text("SELECT file_type FROM documents LIMIT 1"))
+            except Exception:
+                try:
+                    conn.execute(text("ALTER TABLE documents ADD COLUMN file_type VARCHAR(50) DEFAULT 'pdf'"))
+                    conn.commit()
+                    print("[DB Migration] Added missing column 'file_type' to documents table.")
+                except Exception as ex:
+                    print(f"[DB Migration] Notice on file_type column migration: {ex}")
+
+            # Check document_analyses.debug_info column
+            try:
+                conn.execute(text("SELECT debug_info FROM document_analyses LIMIT 1"))
+            except Exception:
+                try:
+                    conn.execute(text("ALTER TABLE document_analyses ADD COLUMN debug_info TEXT"))
+                    conn.commit()
+                    print("[DB Migration] Added missing column 'debug_info' to document_analyses table.")
+                except Exception as ex:
+                    print(f"[DB Migration] Notice on debug_info column migration: {ex}")
+    except Exception as e:
+        print(f"[DB Migration] Notice: {e}")
+

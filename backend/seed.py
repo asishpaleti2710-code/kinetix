@@ -1,5 +1,5 @@
 """
-Standalone Database Seeding & Verification Script for AgentFlow AI
+Standalone Database Seeding & Verification Script for Kinetix
 Populates realistic sales leads, scheduled appointments, knowledge base docs, and evaluation benchmarks.
 """
 from datetime import datetime, date, timedelta
@@ -7,7 +7,7 @@ from app.core.database import SessionLocal, init_db
 from app.models.models import Lead, Appointment, Document, Evaluation, Conversation
 
 def seed():
-    print("Initializing AgentFlow AI Database Schema...")
+    print("Initializing Kinetix Database Schema...")
     init_db()
     db = SessionLocal()
 
@@ -83,7 +83,7 @@ def seed():
                 date=tomorrow,
                 time="10:00 AM EST",
                 status="Scheduled",
-                meeting_link="https://meet.agentflow.ai/sales-demo",
+                meeting_link="https://meet.kinetix.ai/sales-demo",
                 notes="Live LangGraph Agentic Architecture Deep Dive"
             ),
             Appointment(
@@ -91,7 +91,7 @@ def seed():
                 date=day_after,
                 time="2:30 PM EST",
                 status="Scheduled",
-                meeting_link="https://meet.agentflow.ai/sales-demo",
+                meeting_link="https://meet.kinetix.ai/sales-demo",
                 notes="Enterprise Security, RAG & ChromaDB Integration Session"
             )
         ]
@@ -99,8 +99,8 @@ def seed():
 
         # Seed Documents
         db.add(Document(
-            filename="AgentFlow_Product_Manual.pdf",
-            file_path="./uploads/AgentFlow_Product_Manual.pdf",
+            filename="Kinetix_Product_Manual.pdf",
+            file_path="./uploads/Kinetix_Product_Manual.pdf",
             file_size=142850,
             chunk_count=18
         ))

@@ -1,100 +1,174 @@
 import React from 'react';
 import { 
-  LayoutDashboard, 
+  Compass, 
+  Sparkles, 
+  Bot, 
   Users, 
   BookOpen, 
-  CheckCircle2, 
+  ShieldCheck, 
   MessageSquare, 
-  Bot, 
-  Moon, 
-  Sun,
-  Cpu,
-  Sparkles
+  BarChart2, 
+  PanelLeftClose, 
+  PanelLeftOpen, 
+  ChevronDown, 
+  Search, 
+  Command, 
+  Sun, 
+  Moon 
 } from 'lucide-react';
 
-export default function Sidebar({ currentTab, setCurrentTab, theme, setTheme }) {
-  const navItems = [
-    { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
-    { id: 'chat', label: 'AI Sales Simulator', icon: Bot, badge: 'Live' },
-    { id: 'leads', label: 'Lead Management', icon: Users },
-    { id: 'knowledge', label: 'Knowledge Base (RAG)', icon: BookOpen },
-    { id: 'evaluation', label: 'Evaluation Center', icon: CheckCircle2 },
-    { id: 'conversations', label: 'Chat Transcripts', icon: MessageSquare }
+export default function Sidebar({ 
+  currentTab, 
+  setCurrentTab, 
+  theme, 
+  setTheme,
+  isCollapsed,
+  setIsCollapsed,
+  onOpenCommand
+}) {
+  const navSections = [
+    {
+      title: 'Intelligence Hub',
+      items: [
+        { id: 'dashboard', label: 'Command Center', icon: Compass, shortcut: '⌘1' },
+        { id: 'doc_intelligence', label: 'Document Intelligence', icon: Sparkles, badge: 'Hero', shortcut: '⌘2' },
+        { id: 'chat', label: 'AI Sales Assistant', icon: Bot, badge: 'Live', shortcut: '⌘3' }
+      ]
+    },
+    {
+      title: 'Business Operations',
+      items: [
+        { id: 'leads', label: 'Prospects & Leads', icon: Users, shortcut: '⌘4' },
+        { id: 'knowledge', label: 'Knowledge Library', icon: BookOpen, shortcut: '⌘5' }
+      ]
+    },
+    {
+      title: 'Performance & Quality',
+      items: [
+        { id: 'evaluation', label: 'Quality & Accuracy', icon: ShieldCheck, shortcut: '⌘6' },
+        { id: 'conversations', label: 'Interaction History', icon: MessageSquare, shortcut: '⌘7' },
+        { id: 'analytics', label: 'Revenue Analytics', icon: BarChart2, badge: 'New', shortcut: '⌘8' }
+      ]
+    }
   ];
 
   return (
-    <aside className="sidebar">
-      {/* Brand Header */}
-      <div className="sidebar-header">
-        <div className="brand-icon-box">
-          <Sparkles size={22} />
+    <aside className={`sidebar ${isCollapsed ? 'collapsed' : 'expanded'}`}>
+      {/* Brand & Workspace Switcher */}
+      <div className="sidebar-brand-wrapper">
+        <div className="sidebar-brand" onClick={() => setCurrentTab('dashboard')}>
+          <div className="brand-logo-gem">
+            <Sparkles size={18} />
+          </div>
+          {!isCollapsed && (
+            <div className="brand-text-block">
+              <span className="brand-name">Kinetix</span>
+              <span className="brand-tier-pill">AI OS</span>
+            </div>
+          )}
         </div>
-        <div>
-          <h1 className="brand-title">AgentFlow AI</h1>
-          <div className="brand-tag">Enterprise Sales AI</div>
-        </div>
+
+        {/* Collapse toggle icon button */}
+        <button 
+          className="collapse-toggle-btn"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          title={isCollapsed ? "Expand navigation ([)" : "Collapse navigation ([)"}
+          aria-label="Toggle Navigation"
+        >
+          {isCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+        </button>
       </div>
 
-      {/* Navigation Links */}
+      {/* Workspace Selector Pill */}
+      {!isCollapsed && (
+        <div className="workspace-pill">
+          <div className="workspace-avatar">K</div>
+          <div className="workspace-info">
+            <span className="workspace-title">Enterprise Ops</span>
+            <span className="workspace-env">Autonomous Cloud</span>
+          </div>
+          <ChevronDown size={14} className="workspace-caret" />
+        </div>
+      )}
+
+      {/* Quick Search Trigger */}
+      {!isCollapsed && (
+        <div className="sidebar-search-trigger" onClick={onOpenCommand}>
+          <Search size={14} />
+          <span className="search-placeholder">Search intelligence...</span>
+          <span className="search-kbd"><Command size={10} />K</span>
+        </div>
+      )}
+
+      {/* Navigation Sections */}
       <nav className="sidebar-nav">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = currentTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setCurrentTab(item.id)}
-              className={`nav-item ${isActive ? 'active' : ''}`}
-            >
-              <Icon size={19} />
-              <span style={{ flex: 1, textAlign: 'left' }}>{item.label}</span>
-              {item.badge && (
-                <span style={{
-                  fontSize: '0.65rem',
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  color: 'white',
-                  padding: '2px 6px',
-                  borderRadius: '10px',
-                  fontWeight: 700
-                }}>
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
+        {navSections.map((section, sIdx) => (
+          <div key={sIdx} className="nav-group">
+            {!isCollapsed && (
+              <div className="nav-group-title">{section.title}</div>
+            )}
+            <div className="nav-group-items">
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                const isActive = currentTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setCurrentTab(item.id)}
+                    className={`nav-item-btn ${isActive ? 'active' : ''}`}
+                    title={isCollapsed ? `${item.label} (${item.shortcut})` : undefined}
+                  >
+                    <div className="nav-item-icon-box">
+                      <Icon size={17} />
+                    </div>
+                    
+                    {!isCollapsed && (
+                      <>
+                        <span className="nav-item-label">{item.label}</span>
+                        {item.badge && (
+                          <span className={`nav-item-badge ${item.badge.toLowerCase()}`}>
+                            {item.badge}
+                          </span>
+                        )}
+                        {item.shortcut && (
+                          <span className="nav-item-shortcut">{item.shortcut}</span>
+                        )}
+                      </>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
-      {/* Agent System Status */}
-      <div style={{
-        margin: '0 12px 12px 12px',
-        padding: '12px',
-        background: 'rgba(99, 102, 241, 0.08)',
-        border: '1px solid rgba(99, 102, 241, 0.2)',
-        borderRadius: 'var(--radius-md)',
-        fontSize: '0.78rem'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-          <span className="pulse-indicator"></span>
-          <span style={{ fontWeight: 600, color: '#a5b4fc' }}>LangGraph Engine</span>
+      {/* Engine Status Badge (Clean, customer-facing) */}
+      {!isCollapsed ? (
+        <div className="sidebar-engine-box">
+          <div className="engine-status-row">
+            <span className="live-pulse-dot"></span>
+            <span className="engine-name">Intelligence Engine</span>
+          </div>
+          <div className="engine-subtext">All Services Operational</div>
         </div>
-        <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
-          6 Autonomous Tools Active • ChromaDB Vector Store Online
+      ) : (
+        <div className="sidebar-engine-collapsed" title="Intelligence Engine Active • Operational">
+          <span className="live-pulse-dot"></span>
         </div>
-      </div>
+      )}
 
-      {/* Footer & Theme Toggle */}
+      {/* Footer Controls */}
       <div className="sidebar-footer">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-          <Cpu size={16} />
-          <span>v1.0.0 Prod</span>
-        </div>
         <button
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="btn-icon"
+          className="theme-switch-btn"
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
         >
-          {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          {!isCollapsed && (
+            <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+          )}
         </button>
       </div>
     </aside>
